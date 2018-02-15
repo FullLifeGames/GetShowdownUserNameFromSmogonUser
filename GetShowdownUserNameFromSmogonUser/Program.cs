@@ -36,7 +36,7 @@ namespace GetShowdownUserNameFromSmogonUser
                         {
                             string userOne = "";
                             string userTwo = "";
-                            GetUsersForReplay(replay, ref userOne, ref userTwo);
+                            if(!GetUsersForReplay(replay, ref userOne, ref userTwo)) continue;
 
                             if (userOne == Regex(opponent))
                             {
@@ -96,24 +96,32 @@ namespace GetShowdownUserNameFromSmogonUser
             }
         }
 
-        private static void GetUsersForReplay(string replay, ref string userOne, ref string userTwo)
+        private static bool GetUsersForReplay(string replay, ref string userOne, ref string userTwo)
         {
-            string output = client.DownloadString(replay);
-            foreach(string line in output.Split('\n'))
+            try
             {
-                if(line.Contains("<h1 "))
+                string output = client.DownloadString(replay);
+                foreach (string line in output.Split('\n'))
                 {
-                    string tempLine = line.Substring(line.IndexOf("<a"));
-                    tempLine = tempLine.Substring(tempLine.IndexOf("/users/") + "/users/".Length);
-                    userOne = ShowdownRegex(tempLine.Substring(0, tempLine.IndexOf("\"")));
+                    if (line.Contains("<h1 "))
+                    {
+                        string tempLine = line.Substring(line.IndexOf("<a"));
+                        tempLine = tempLine.Substring(tempLine.IndexOf("/users/") + "/users/".Length);
+                        userOne = ShowdownRegex(tempLine.Substring(0, tempLine.IndexOf("\"")));
 
-                    tempLine = tempLine.Substring(tempLine.IndexOf("<a"));
-                    tempLine = tempLine.Substring(tempLine.IndexOf("/users/") + "/users/".Length);
-                    userTwo = ShowdownRegex(tempLine.Substring(0, tempLine.IndexOf("\"")));
+                        tempLine = tempLine.Substring(tempLine.IndexOf("<a"));
+                        tempLine = tempLine.Substring(tempLine.IndexOf("/users/") + "/users/".Length);
+                        userTwo = ShowdownRegex(tempLine.Substring(0, tempLine.IndexOf("\"")));
 
-                    break;
+                        break;
+                    }
                 }
             }
+            catch (WebException)
+            {
+                return false;
+            }
+            return true;
         }
 
         private static Regex rgx = new Regex("[, ]");
